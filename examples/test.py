@@ -7,7 +7,7 @@ Usage:
     python test.py "kunde 1 env"
     
 Before running:
-    1. ikv-secrets login --tenant <your-tenant> --url https://localhost:5001
+    1. ikv-secrets login --tenant <your-tenant> --url https://vault.example.com
     2. Set IKV_TENANT environment variable
 """
 
@@ -52,7 +52,7 @@ def main():
     url = get_tenant_url(tenant)
     if not url:
         print(f"\n❌ No URL configured for tenant '{tenant}'")
-        print(f"   Run: ikv-secrets login --tenant {tenant} --url https://localhost:5001")
+        print(f"   Run: ikv-secrets login --tenant {tenant} --url https://vault.example.com")
         sys.exit(1)
     
     print(f"   Vault URL: {url}")

@@ -29,18 +29,20 @@ def main() -> None:
 @click.option("--url", "-u", help="Vault URL")
 @click.option("--api-key", envvar="IKV_API_KEY", help="Service account API key")
 @click.option("--master-key", envvar="IKV_MASTER_KEY", help="Master password")
-@click.option("--force", "-f", is_flag=True, help="Force re-login even if already logged in")
+@click.option("--force", "-f", is_flag=True, help="Force re-login even if already logged in locally")
+@click.option("--force-login", is_flag=True, help="Force fresh browser authentication (ignore existing browser session)")
 def login(
     tenant: str,
     url: Optional[str],
     api_key: Optional[str],
     master_key: Optional[str],
     force: bool,
+    force_login: bool,
 ) -> None:
     """Login to IronKeyVault."""
     # Check if already logged in
     existing_token = get_token(tenant)
-    if existing_token and not existing_token.is_expired and not force:
+    if existing_token and not existing_token.is_expired and not force and not force_login:
         minutes_left = existing_token.expires_in // 60
         click.echo(f"✓ Already logged in to '{tenant}' (expires in {minutes_left} minutes)")
         click.echo(f"  Use --force to re-login")
@@ -52,6 +54,7 @@ def login(
             vault_url=url,
             api_key=api_key,
             master_key=master_key,
+            force_login=force_login,
         )
         click.echo(f"✓ Logged in to '{tenant}' (expires in {token.expires_in // 60} minutes)")
     except AuthError as e:

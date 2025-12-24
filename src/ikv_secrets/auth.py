@@ -47,6 +47,7 @@ def login(
     vault_url: Optional[str] = None,
     api_key: Optional[str] = None,
     master_key: Optional[str] = None,
+    force_login: bool = False,
 ) -> TokenInfo:
     """
     Authenticate to IronKeyVault.
@@ -62,6 +63,7 @@ def login(
         vault_url: Vault URL (optional, defaults to https://localhost:5001)
         api_key: Service account API key (for CI/CD)
         master_key: Master password (for CI/CD)
+        force_login: If True, always require fresh login even if browser has session
         
     Returns:
         TokenInfo with access token
@@ -83,16 +85,21 @@ def login(
         return _service_account_login(tenant, vault_url, api_key, master_key)
     
     # Browser login flow (normal user login)
-    return _browser_login(tenant, vault_url)
+    return _browser_login(tenant, vault_url, force_login=force_login)
 
 
-def _browser_login(tenant: str, vault_url: str) -> TokenInfo:
+def _browser_login(tenant: str, vault_url: str, force_login: bool = False) -> TokenInfo:
     """
     Authenticate using browser login flow.
     
     Opens browser to IronKeyVault login page. User logs in normally
     (with MFA, master password etc). SDK receives auth code via callback,
     then exchanges it for access token.
+    
+    Args:
+        tenant: Tenant name
+        vault_url: Vault URL
+        force_login: If True, always require fresh login even if browser has session
     """
     # Start local callback server
     callback_received = threading.Event()
@@ -190,6 +197,7 @@ def _browser_login(tenant: str, vault_url: str) -> TokenInfo:
         "redirect_uri": callback_url,
         "state": state,
         "device_fingerprint": urllib.parse.quote(str(device_info)),
+        "force_login": "1" if force_login else "0",
     })
     auth_url = f"{vault_url}/auth/oauth/start?{auth_params}"
     
