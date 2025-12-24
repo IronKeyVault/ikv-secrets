@@ -29,13 +29,23 @@ def main() -> None:
 @click.option("--url", "-u", help="Vault URL")
 @click.option("--api-key", envvar="IKV_API_KEY", help="Service account API key")
 @click.option("--master-key", envvar="IKV_MASTER_KEY", help="Master password")
+@click.option("--force", "-f", is_flag=True, help="Force re-login even if already logged in")
 def login(
     tenant: str,
     url: Optional[str],
     api_key: Optional[str],
     master_key: Optional[str],
+    force: bool,
 ) -> None:
     """Login to IronKeyVault."""
+    # Check if already logged in
+    existing_token = get_token(tenant)
+    if existing_token and not existing_token.is_expired and not force:
+        minutes_left = existing_token.expires_in // 60
+        click.echo(f"✓ Already logged in to '{tenant}' (expires in {minutes_left} minutes)")
+        click.echo(f"  Use --force to re-login")
+        return
+    
     try:
         token = do_login(
             tenant=tenant,

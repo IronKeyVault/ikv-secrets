@@ -61,7 +61,8 @@ class IKVClient:
         self._api_key = api_key
         self._master_key = master_key
         self._token: Optional[TokenInfo] = None
-        self._http = httpx.Client(timeout=30.0)
+        # verify=False allows self-signed certs for localhost/dev
+        self._http = httpx.Client(timeout=30.0, verify=False)
     
     @classmethod
     def from_env(cls) -> "IKVClient":
